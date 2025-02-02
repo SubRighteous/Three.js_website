@@ -2,79 +2,126 @@
 <html>
 	<head>
 		<meta charset=utf-8>
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<title>My first three.js app</title>
 		<style>
-			body { margin: 0; }
+			body { margin: 0; overflow: hidden; }
 			canvas { width: 100%; height: 100% }
 		</style>
 	</head>
 	<body>
+		<div id="ThreeJSApp" style="width: 100vw; height: 100vh; margin: 0,0;">
+		</div>
 		<script src="js/three.js"></script>
-		<script>
-			var scene = new THREE.Scene();
-			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-
-			var renderer = new THREE.WebGLRenderer();
-			renderer.setSize( window.innerWidth, window.innerHeight );
-			document.body.appendChild( renderer.domElement );
-
-
-			var isAtMaxY = false;
-			var isAtMaxX = false;
-			
-			var light = new THREE.AmbientLight(0x404040);	
 		
-			var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-			var planeGeometry = new THREE.PlaneBufferGeometry(10,10,32,32)
-			var material = new THREE.MeshBasicMaterial( { color: 0xA52617 } );
-			var cube = new THREE.Mesh( geometry, material );
-			
-			var PlaneWireframe = new THREE.WireframeGeometry(planeGeometry);
-			var PlaneLine = new THREE.LineSegments(PlaneWireframe);
-			scene.add( cube );
-			scene.add( light);
-			scene.add( PlaneLine);
+			<script>
+				var app_div = document.getElementById("ThreeJSApp");
+
+				var scene = new THREE.Scene();
+				var clock = new THREE.Clock();
+				//var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+				var camera = new THREE.PerspectiveCamera( 90, app_div.offsetWidth / app_div.offsetHeight, 0.1, 1000 );
+
+				var renderer = new THREE.WebGLRenderer();
+				//renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.setSize( app_div.offsetWidth, app_div.offsetHeight );
+				renderer.shadowMap.enabled = true;
+				renderer.shadowMap.type = THREE.BasicShadowMap;
+				//document.body.appendChild( renderer.domElement );
+				
+				app_div.appendChild(renderer.domElement);
+
+				var isAtMaxY = false;
+				var isAtMaxX = false;
+				
+				let light = new THREE.DirectionalLight(0xFFFFFF, 1.0);
+				light.position.set(20, 100, 10);
+				light.target.position.set(0, 0, 0);
+				light.castShadow = true;
+				light.shadow.mapSize.width = 512;
+				light.shadow.mapSize.height = 512;
+				scene.add(light);
 
 
-			PlaneLine.rotation.x = 90;
-			PlaneLine.position.y = -1;
+				var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+				var planeGeometry = new THREE.PlaneGeometry(10,10)
+				var material = new THREE.MeshStandardMaterial( { color: 0xA52617 } );
+				var cube = new THREE.Mesh( geometry, material );
+				cube.castShadow = true;
 
-			camera.position.z = 5;
-			camera.position.y = 0;
-			camera.position.x = 0;
+				var plane_geometry = new THREE.PlaneGeometry( 10, 10 );
+				var plane_material = new THREE.MeshStandardMaterial( {color: 0xB45F06, side: THREE.DoubleSide} );
+				var plane = new THREE.Mesh( plane_geometry, plane_material );
+				plane.castShadow = false;
+				plane.receiveShadow = true;
+				
+				scene.add( plane );
 
-			function animate() {
-				requestAnimationFrame( animate );
-				renderer.render( scene, camera );
+				scene.add( cube );
+				scene.add( light);
 
-				cube.rotation.y += 0.01;
-				cube.rotation.x += 0.01;
 
-				if(isAtMaxX == false){
-				   
-				 PlaneLine.position.x += 0.01;
-				   if(PlaneLine.position.x >= 10){
-					isAtMaxX = true;
-				   }
+				plane.rotation.x = 90;
+				plane.position.y = -1;
 
+				camera.position.z = 10;
+				camera.position.y = 0;
+				camera.position.x = 0;
+
+				window.addEventListener("resize" , onWindowResize)
+
+				function onWindowResize(){
+					camera.aspect = app_div.offsetWidth / app_div.offsetHeight;
+					camera.updateProjectionMatrix();
+
+					renderer.setSize(app_div.offsetWidth,app_div.offsetHeight)
 				}
-				if(isAtMaxX == true){
-				   
-				  PlaneLine.position.x -= 0.01;
 
+				function animate() {
+					requestAnimationFrame( animate );
+					renderer.render( scene, camera );
+					var delta = clock.getDelta();
 
+					cube.rotation.y += 2 * delta;
+					cube.rotation.x -= 2 * delta;
 
-				   if(PlaneLine.position.x <= -5){
-					isAtMaxX = false;
-				   }
-				}	
+					
+					if(isAtMaxX == false){
+					
+						camera.position.x += 1 * delta;
+						
+						if(camera.position.x >= 5){
+							isAtMaxX = true;
+							
+							// Change color of cube material
+							material.color.setRGB( Math.random(), Math.random(), Math.random() );
+							plane_material.color.setRGB( Math.random(), Math.random(), Math.random() );
+						}
+
+					}
+					else if(isAtMaxX == true){
+					
+						camera.position.x -= 1 * delta;
+
+						//camera.rotation.y += 0.003;
+
+						if(camera.position.x <= -5){
+							isAtMaxX = false;
+
+							// Change color of cube material
+							material.color.setRGB( Math.random(), Math.random(), Math.random() );
+							plane_material.color.setRGB( Math.random(), Math.random(), Math.random() );
+						}
+					}	
+					
+					
+				}
+
+				animate();
 				
 				
-			}
 
-			animate();
+			</script>
 		
-
-		</script>
 	</body>
 </html>
